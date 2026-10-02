@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Data & Models (ne jamais push les gros fichiers)
+data/*
+!data/.gitkeep
+dist/
+*.csv
+*.parquet
+*.pkl
+*.joblib
+*.log
+
+# Exceptions : les deux tables lues par le notebook du modèle de succès, et le modèle entraîné
+!data/processed/
+!data/processed/movies.parquet
+!data/processed/succes_dataset.parquet
+!notebooks/models/succes_classification.joblib
+!notebooks/models/succes_classification.json
+
+# Notes personnelles et sorties locales
+reports/
+tests/
+.pytest_cache/
+notebooks/01_qualite_donnees.ipynb
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environnement / Clés API
+.env
