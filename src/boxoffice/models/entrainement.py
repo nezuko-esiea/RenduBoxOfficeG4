@@ -444,3 +444,37 @@ def grille_simulation(modele, data: pd.DataFrame, jeu: dict, genres: list[str],
     matrice = pd.DataFrame(lignes).astype("float64")[jeu["variables"]]
     probabilites = modele.predict_proba(matrice)[:, 1] * 100
     return pd.DataFrame(etiquettes).assign(probabilite=probabilites.round(0))
+
+def fiabilite_par_genre(data: pd.DataFrame, jeu: dict, probabilites: np.ndarray,
+                        minimum: int = 30) -> pd.DataFrame:
+    """Pour chaque genre : taux réel, probabilité moyenne annoncée, biais et Brier.
+
+    Le biais vaut probabilité moyenne - taux réel. Positif, le modèle surestime ce genre ;
+    négatif, il le sous-estime. Plus le Brier est faible, mieux le genre est prédit.
+    """
+    test = data.loc[jeu["i_test"]]
+    reel = jeu["y"][jeu["i_test"]].to_numpy()
+    lignes = []
+    for colonne in [c for c in jeu["variables"] if c.startswith("genre_")]:
+        masque = test[colonne].to_numpy() == 1
+        if masque.sum() < minimum:
+            continue
+        annonce, observe = probabilites[masque], reel[masque]
+        lignes.append({"type de film": colonne[6:], "films": int(masque.sum()),
+                       "taux réel": observe.mean(), "probabilité moyenne": annonce.mean(),
+                       "biais": annonce.mean() - observe.mean(), "Brier": brier_score_loss(observe, annonce)})
+    return pd.DataFrame(lignes).set_index("type de film").sort_values("Brier")
+
+
+def residus_par_genre(data: pd.DataFrame, jeu: dict, probabilites: np.ndarray,
+                      minimum: int = 30) -> pd.DataFrame:
+    """Un résidu par film et par genre : probabilité annoncée moins issue réelle (0 ou 1)."""
+    test = data.loc[jeu["i_test"]]
+    residu = probabilites - jeu["y"][jeu["i_test"]].to_numpy()
+    blocs = []
+    for colonne in [c for c in jeu["variables"] if c.startswith("genre_")]:
+        masque = test[colonne].to_numpy() == 1
+        if masque.sum() < minimum:
+            continue
+        blocs.append(pd.DataFrame({"type de film": colonne[6:], "résidu": residu[masque]}))
+    return pd.concat(blocs, ignore_index=True)
