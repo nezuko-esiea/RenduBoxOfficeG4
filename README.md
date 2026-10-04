@@ -22,30 +22,51 @@ Analyse prédictive et système de recommandation pour guider les investissement
 3/ Installer les dépendances :
    pip install -r requirements.txt
 
-## Utilisation Recommandation
-
-1/ télécharger le zip ml-32.zip sur le site https://grouplens.org/datasets/movielens/
-2/ décompressez le zip vers le dossier du dépôt
-3/ executez le notebook movielens_clustering_recommender
-4/ dans le dossier notebooks, lancer la commande suivante : `streamlit run dashboard_recommandation.py`
-
-## Utilisation Succès au box-office
-
-Aucun téléchargement ni clé API : les tables nettoyées et le modèle entraîné sont dans le dépôt.
-
-1/ (Optionnel) exécutez `notebooks/01_qualite_donnees.ipynb` pour l'audit de qualité des données
-2/ exécutez le notebook `notebooks/02_succes_technique.ipynb` (environ 5 minutes, dont 2 pour les valeurs SHAP)
-3/ exécutez `notebooks/03_restitution_metier.ipynb` pour la lecture métier, ou lancez le tableau de bord (voir plus bas)
+## Contenu du dépôt
 
 | Fichier | Contenu |
 |---|---|
-| `notebooks/01_qualite_donnees.ipynb` | audit de qualité des données : manquants, budgets aberrants, inflation, représentativité |
-| `notebooks/02_succes_technique.ipynb` | modèle de succès : cible, choix du modèle, réglage, seuil de décision, contrôles, interprétabilité |
-| `src/boxoffice/` | le code appelé par le notebook : collecte, nettoyage, variables, modèle, figures |
-| `data/processed/` | les deux tables nettoyées lues par le notebook (3 Mo), issues de MovieLens, TMDB et IMDb |
-| `notebooks/models/succes_classification.*` | modèle entraîné et sa carte d'identité |
+| `notebooks/main.ipynb` | **notebook principal** : le modèle de succès (partie A) puis la recommandation (partie B) |
+| `notebooks/01_qualite_donnees.ipynb` | audit de qualité des données, livré déjà exécuté |
+| `notebooks/02_succes_technique.ipynb` | le modèle de succès seul, repris dans la partie A du notebook principal |
+| `notebooks/movielens_clustering_recommender.ipynb` | la recommandation seule, reprise dans la partie B du notebook principal |
+| `notebooks/03_restitution_metier.ipynb` | la restitution métier, destinée à la direction du studio |
+| `notebooks/dashboard_succes.py` | tableau de bord Streamlit « Quel film produire ensuite ? » |
+| `notebooks/dashboard_recommandation.py`, `notebooks/test_model.py` | tableau de bord Streamlit des recommandations, et son script de test en ligne de commande |
+| `notebooks/models/` | les modèles entraînés : succès (`succes_classification.*`) et recommandation (`clustering_recommender.pkl`) |
+| `src/boxoffice/` | le code appelé par les notebooks du modèle de succès : collecte, nettoyage, variables, modèle, figures |
+| `data/processed/` | les cinq tables lues par les notebooks (74 Mo), issues de MovieLens, TMDB et IMDb |
+| `soutenance_intro_DataVisualisation.pptx` | support de l'introduction de la soutenance |
 
-Le notebook est livré déjà exécuté : il se lit sans rien lancer. Le modèle enregistré dans `notebooks/models/` est celui qu'utilise la partie métier.
+## Notebook principal
+
+Aucun téléchargement ni clé API : toutes les tables lues sont dans le dépôt.
+
+1/ ouvrez `notebooks/main.ipynb` et choisissez l'environnement `.venv` comme noyau
+2/ exécutez toutes les cellules, de haut en bas
+
+Compter environ 10 minutes, dont 3 à 4 pour les valeurs SHAP et 2 à 3 pour le choix du nombre de clusters, et 7 Go de mémoire vive disponible : la partie B charge les 32 millions de notes MovieLens. Elle réenregistre aussi le modèle de recommandation dans `notebooks/models/`.
+
+Le notebook est livré déjà exécuté : il se lit sans rien lancer.
+
+Le notebook de qualité des données, `notebooks/01_qualite_donnees.ipynb`, n'est pas repris dans le notebook principal : il lit les sources brutes et les tables intermédiaires du pipeline, qui ne sont pas dans le dépôt (environ 2 Go). Il est lui aussi livré déjà exécuté, et ne se rejoue qu'après avoir reconstitué les sources brutes (voir plus bas).
+
+## Utilisation Recommandation
+
+Les notes MovieLens sont dans `data/processed/ratings.parquet` et le modèle entraîné dans `notebooks/models/` : il n'y a rien à télécharger.
+
+1/ exécutez la partie B de `notebooks/main.ipynb`, ou le notebook `movielens_clustering_recommender` seul
+2/ dans le dossier notebooks, lancer la commande suivante : `streamlit run dashboard_recommandation.py`
+3/ pour tester le modèle en ligne de commande, toujours dans le dossier notebooks : `python test_model.py --user-id 1`
+
+Les affiches des films sont facultatives : elles demandent une clé TMDB gratuite, à placer dans `.env` (modèle : `.env.example`) ou à saisir dans le tableau de bord.
+
+## Utilisation Succès au box-office
+
+1/ exécutez la partie A de `notebooks/main.ipynb`, ou le notebook `notebooks/02_succes_technique.ipynb` seul (environ 5 minutes, dont 2 pour les valeurs SHAP)
+2/ pour la lecture métier, exécutez `notebooks/03_restitution_metier.ipynb` ou lancez le tableau de bord (voir plus bas)
+
+Le modèle enregistré dans `notebooks/models/` est celui qu'utilise la partie métier.
 
 ### Chiffres clés
 
@@ -101,9 +122,9 @@ Taux de référence du catalogue : 35 %.
 - Il ne couvre que le cinéma dont budgets et recettes sont publics.
 - Sa fiabilité a été divisée par deux pendant la fermeture des salles (2020-2021).
 
-### Reconstituer les sources brutes
+## Reconstituer les sources brutes
 
-Facultatif, environ 1 h 30, avec une clé TMDB gratuite à placer dans `.env` (modèle : `.env.example`).
+Facultatif, environ 1 h 30, avec une clé TMDB gratuite à placer dans `.env` (modèle : `.env.example`). Nécessaire seulement pour rejouer le notebook de qualité des données.
 
    python -m boxoffice.ingestion.movielens
    python -m boxoffice.ingestion.tmdb
