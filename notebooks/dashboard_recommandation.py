@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import requests
 import streamlit as st
+from dotenv import load_dotenv
 
 from test_model import (
     DATA_DIR,
@@ -19,6 +20,13 @@ TMDB_API_BASE = "https://api.themoviedb.org/3/movie"
 
 MIN_VOTES_CLUSTER_MOVIES = 1000
 
+# Charge les variables d'environnement depuis le .env à la racine du projet
+# (copie de .env.example avec la vraie clé renseignée — voir .env.example et
+# le README). load_dotenv() ne fait rien si le fichier n'existe pas encore,
+# donc le dashboard continue de fonctionner sans affiches.
+_ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
+load_dotenv(_ENV_PATH)
+
 st.set_page_config(page_title="MovieLens — Recommandations & Clusters", layout="wide")
 
 @st.cache_resource
@@ -33,10 +41,10 @@ def get_data(data_dir=DATA_DIR):
 
 @st.cache_data
 def get_links(data_dir=DATA_DIR):
-    path = os.path.join(data_dir, "links.csv")
+    path = os.path.join(data_dir, "links.parquet")
     if not os.path.exists(path):
         return None
-    return pd.read_csv(path, dtype={"movieId": "int32"})
+    return pd.read_parquet(path)
 
 
 @st.cache_data(show_spinner=False)
@@ -162,11 +170,11 @@ with st.sidebar:
     st.header("Configuration")
     api_key = st.text_input(
         "Clé API TMDB (optionnelle, pour les affiches)",
-        value=os.environ.get("TMDB_API_KEY", "09c183a9e21038d5bc47c4ae460b9559"),
+        value=os.environ.get("TMDB_API_KEY", ""),
         type="password",
     )
     if links is None:
-        st.caption("links.csv introuvable dans le dossier de données — pas d'affiches possibles.")
+        st.caption("links.parquet introuvable dans le dossier de données — pas d'affiches possibles.")
 
 tab_user, tab_cluster, tab_compare = st.tabs(
     ["Recommandations par utilisateur", "Profil d'un cluster", "Comparer deux clusters"]

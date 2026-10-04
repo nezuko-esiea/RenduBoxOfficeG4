@@ -16,10 +16,16 @@ dist/
 *.joblib
 *.log
 
-# Exceptions : les deux tables lues par le notebook du modèle de succès, et le modèle entraîné
+# Exceptions : les tables lues par les notebooks (modèle de succès et
+# recommandation), et les modèles entraînés. ratings.parquet ne contient plus
+# la colonne timestamp (non utilisée) et est compressé en zstd : ~66 Mo,
+# sous la limite de 100 Mo de GitHub.
 !data/processed/
 !data/processed/movies.parquet
 !data/processed/succes_dataset.parquet
+!data/processed/movielens_movies.parquet
+!data/processed/links.parquet
+!data/processed/ratings.parquet
 !notebooks/models/succes_classification.joblib
 !notebooks/models/succes_classification.json
 

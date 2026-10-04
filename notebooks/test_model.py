@@ -9,7 +9,7 @@ import pickle
 
 import pandas as pd
 
-DATA_DIR = "..\\ml-32m"
+DATA_DIR = os.path.join("..", "data", "processed")
 MODEL_PATH = os.path.join("models", "clustering_recommender.pkl")
 
 
@@ -24,8 +24,17 @@ def load_model(path=MODEL_PATH):
 
 
 def load_data(data_dir=DATA_DIR):
-    ratings = pd.read_csv(os.path.join(data_dir, "ratings.csv"))
-    movies = pd.read_csv(os.path.join(data_dir, "movies.csv"))
+    """Charge les notes et les films depuis les .parquet de data/processed.
+
+    Le fichier movies.parquet du dossier contient déjà un schéma enrichi
+    (box-office, TMDB/IMDb) sans la colonne "genres" nécessaire à la
+    recommandation — c'est pourquoi les films MovieLens bruts (movieId,
+    title, genres) sont stockés séparément dans movielens_movies.parquet.
+    """
+    ratings = pd.read_parquet(
+        os.path.join(data_dir, "ratings.parquet"), columns=["userId", "movieId", "rating"]
+    )
+    movies = pd.read_parquet(os.path.join(data_dir, "movielens_movies.parquet"))
     return ratings, movies
 
 
