@@ -27,7 +27,6 @@ dist/
 reports/
 tests/
 .pytest_cache/
-notebooks/01_qualite_donnees.ipynb
 
 # Jupyter
 .ipynb_checkpoints/
